@@ -1,33 +1,46 @@
 # File Renamer Automation Script
 # Created on: 7th March 2025
-# By: Rutva
+# By: Rutva Shetty
 
 import os
 
 # Folder Path
 folder_path = input("Enter the folder path where files are stored: ")
-prefix = input("Enter prefix to add (Leave blank if not needed): ")
-suffix = input("Enter suffix to add (Leave blank if not needed): ")
+rename_option = input("Do you want to completely rename all files? (yes/no): ")
+
+if rename_option.lower() == "no":
+    prefix = input("Enter prefix to add (Leave blank if not needed): ")
+    suffix = input("Enter suffix to add (Leave blank if not needed): ")
+    rename_choice = input("Do you want to enter custom new names for each file? (yes/no/auto): ")
 
 # File Renaming Function
-def rename_files(folder, prefix, suffix):
+def rename_files(folder, rename_option, prefix="", suffix="", rename_choice=""):
     if not os.path.exists(folder):
         print("Folder not found!")
         return
-    
+
     files = os.listdir(folder)
     print(f"Found {len(files)} files")
-    
+
     for index, file in enumerate(files):
         file_path = os.path.join(folder, file)
         if os.path.isfile(file_path):
             filename, ext = os.path.splitext(file)
-            new_filename = f"{prefix}{filename}{suffix}{ext}"
+            
+            if rename_option.lower() == "yes":
+                new_filename = input(f"Enter new name for {file} (without extension): ") + ext
+            elif rename_choice.lower() == "yes":
+                new_name = input(f"Enter custom name for {file} (without extension): ")
+                new_filename = f"{prefix}{new_name}{suffix}{ext}"
+            elif rename_choice.lower() == "auto":
+                new_filename = f"{prefix}File_{index+1}{suffix}{ext}"
+            else:
+                new_filename = f"{prefix}{filename}{suffix}{ext}"
+            
             new_path = os.path.join(folder, new_filename)
             os.rename(file_path, new_path)
             print(f"Renamed: {file} → {new_filename}")
-    
+
     print("All files renamed successfully.")
 
-rename_files(folder_path, prefix, suffix)
-
+rename_files(folder_path, rename_option, prefix if rename_option.lower() == "no" else "", suffix if rename_option.lower() == "no" else "", rename_choice if rename_option.lower() == "no" else "")
