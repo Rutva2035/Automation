@@ -1,0 +1,33 @@
+# Auto Screenshot Taker
+# Created on: 7th March 2025
+# By: Rutva Shetty
+
+import pyautogui
+import os
+import time
+from datetime import datetime
+
+# Folder Path Setup
+folder_path = input("Enter folder path to save screenshots: ")
+if not os.path.exists(folder_path):
+    os.makedirs(folder_path)
+    print(f"Folder created at: {folder_path}")
+
+# Time Interval Setup
+interval = int(input("Enter time interval between screenshots (in seconds): "))
+total_screenshots = int(input("Enter how many screenshots you want to take: "))
+
+# Screenshot Function
+def take_screenshots(folder, interval, total):
+    print("Starting Screenshot Automation...")
+    for i in range(total):
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        screenshot = pyautogui.screenshot()
+        filename = os.path.join(folder, f"Screenshot_{timestamp}.png")
+        screenshot.save(filename)
+        print(f"Captured: {filename}")
+        time.sleep(interval)
+    print("All Screenshots Captured Successfully.")
+
+# Start Automation
+take_screenshots(folder_path, interval, total_screenshots)
