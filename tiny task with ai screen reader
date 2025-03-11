@@ -1,0 +1,103 @@
+# Custom TinyTask Bot™ (Record, Replay & Screen AI Edition)
+# Created on: 11th March 2025
+# By: Rutva
+
+import pyautogui
+import time
+import keyboard
+import json
+import pytesseract
+from PIL import Image
+
+# File to store recorded actions
+actions_file = "recorded_actions.json"
+
+# OCR Setup (Ensure Tesseract is installed)
+pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"  # Change if installed elsewhere
+
+def capture_screen_text():
+    screenshot = pyautogui.screenshot()
+    text = pytesseract.image_to_string(screenshot)
+    return text.strip()
+
+def record_actions():
+    print("\n[Recording Mode] - Press 's' to start recording and 'e' to stop.")
+    recorded_actions = []
+    
+    keyboard.wait('s')  # Wait for 's' key to start recording
+    print("Recording started. Perform your actions...")
+    
+    while True:
+        if keyboard.is_pressed('e'):  # Stop recording when 'e' is pressed
+            print("Recording stopped.")
+            break
+        x, y = pyautogui.position()
+        recorded_actions.append({"x": x, "y": y, "time": time.time(), "action": "move"})
+        if pyautogui.onScreen(x, y):
+            recorded_actions.append({"x": x, "y": y, "action": "click"})
+        
+        # Record Keyboard Input
+        event = keyboard.read_event(suppress=True)
+        if event.event_type == "down":
+            recorded_actions.append({"key": event.name, "action": "keypress"})
+        
+        time.sleep(0.1)  # Capture every 100ms
+    
+    with open(actions_file, "w") as f:
+        json.dump(recorded_actions, f)
+    print(f"Actions saved to {actions_file}")
+
+def replay_actions():
+    print("\n[Replay Mode] - Press 'r' to start playback.")
+    keyboard.wait('r')
+    
+    try:
+        with open(actions_file, "r") as f:
+            recorded_actions = json.load(f)
+        print("Replaying recorded actions...")
+        
+        for action in recorded_actions:
+            if action["action"] == "move":
+                pyautogui.moveTo(action["x"], action["y"], duration=0.1)
+            elif action["action"] == "click":
+                pyautogui.click()
+            elif action["action"] == "keypress":
+                keyboard.press_and_release(action["key"])
+            time.sleep(0.1)  # Delay between actions
+        
+        print("Playback complete.")
+    except FileNotFoundError:
+        print("No recorded actions found! Record first before replaying.")
+
+def screen_ai():
+    print("\n[Screen AI Mode] - Reading screen text...")
+    screen_text = capture_screen_text()
+    print(f"Detected Screen Text: {screen_text}")
+    
+    # Example Decision Making
+    if "continue" in screen_text.lower():
+        print("Detected 'Continue' on screen. Clicking automatically...")
+        pyautogui.click()
+    else:
+        print("No trigger words detected.")
+
+# Main Menu
+while True:
+    print("\n[Custom TinyTask Bot]")
+    print("1 - Record Actions")
+    print("2 - Replay Actions")
+    print("3 - Run Screen AI")
+    print("4 - Exit")
+    choice = input("Select an option: ")
+    
+    if choice == "1":
+        record_actions()
+    elif choice == "2":
+        replay_actions()
+    elif choice == "3":
+        screen_ai()
+    elif choice == "4":
+        print("Exiting...")
+        break
+    else:
+        print("Invalid option! Try again.")
