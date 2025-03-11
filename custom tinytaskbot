@@ -1,0 +1,70 @@
+# Custom TinyTask Bot™ (Record & Replay Edition)
+# Created on: 11th March 2025
+# By: Rutva
+
+import pyautogui
+import time
+import keyboard
+import json
+
+# File to store recorded actions
+actions_file = "recorded_actions.json"
+
+def record_actions():
+    print("\n[Recording Mode] - Press 's' to start recording and 'e' to stop.")
+    recorded_actions = []
+    
+    keyboard.wait('s')  # Wait for 's' key to start recording
+    print("Recording started. Perform your actions...")
+    
+    while True:
+        if keyboard.is_pressed('e'):  # Stop recording when 'e' is pressed
+            print("Recording stopped.")
+            break
+        x, y = pyautogui.position()
+        recorded_actions.append({"x": x, "y": y, "time": time.time(), "action": "move"})
+        if pyautogui.onScreen(x, y):
+            recorded_actions.append({"x": x, "y": y, "action": "click"})
+        time.sleep(0.1)  # Capture every 100ms
+    
+    with open(actions_file, "w") as f:
+        json.dump(recorded_actions, f)
+    print(f"Actions saved to {actions_file}")
+
+def replay_actions():
+    print("\n[Replay Mode] - Press 'r' to start playback.")
+    keyboard.wait('r')
+    
+    try:
+        with open(actions_file, "r") as f:
+            recorded_actions = json.load(f)
+        print("Replaying recorded actions...")
+        
+        for action in recorded_actions:
+            if action["action"] == "move":
+                pyautogui.moveTo(action["x"], action["y"], duration=0.1)
+            elif action["action"] == "click":
+                pyautogui.click()
+            time.sleep(0.1)  # Delay between actions
+        
+        print("Playback complete.")
+    except FileNotFoundError:
+        print("No recorded actions found! Record first before replaying.")
+
+# Main Menu
+while True:
+    print("\n[Custom TinyTask Bot]")
+    print("1 - Record Actions")
+    print("2 - Replay Actions")
+    print("3 - Exit")
+    choice = input("Select an option: ")
+    
+    if choice == "1":
+        record_actions()
+    elif choice == "2":
+        replay_actions()
+    elif choice == "3":
+        print("Exiting...")
+        break
+    else:
+        print("Invalid option! Try again.")
